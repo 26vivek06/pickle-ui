@@ -499,6 +499,8 @@ export const JarCollapsible: FC<{
     const v = shouldNotUncompound
       ? Object.values(x)[0]
       : uncompoundAPY(Object.values(x)[0]);
+    if (name === "PAD PAD/FRAX") console.log(APYs);
+    console.log(name);
     const ret: JarApy = {};
     ret[k] = v;
     return ret;

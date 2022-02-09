@@ -134,15 +134,36 @@ export const MiniFarmList: FC = () => {
     let totalAPY = 0;
     let magicCompounding = 0;
     const jar = getJarFarmMap(pickleCore)[farm.depositToken.address];
+    // interface AprComponent {
+    //   name: string;
+    //   apr: number;
+    //   compoundable: boolean;
+    // }
+    // let tmpAPYs: AprComponent[] = [];
+    // let newAPYs;
     if (jar) {
       const farmingJar: UserJarData | undefined = jarData
         ? jarData.filter((x) => x.name === jar.jarName)[0]
         : undefined;
       if( farmingJar && farmingJar.apiKey ) {
         if( farmingJar && farmingJar.APYs) {
-          APYs = [...APYs, ...farmingJar.APYs];
+          APYs = [...APYs, ...farmingJar.APYs]; 
         }
-        const jardef: JarDefinition|undefined = findJarDefinition(pickleCore, farmingJar.apiKey);
+        if (jar.jarName === "nearJar 5g") 
+          console.log(APYs);
+        const jardef: JarDefinition | undefined = findJarDefinition(pickleCore, farmingJar.apiKey);
+        
+        // if (jardef && jardef.aprStats && jardef.farm && jardef.farm.details && jardef.farm.details.farmApyComponents) {
+        //   tmpAPYs = [...jardef?.aprStats?.components, ...jardef?.farm?.details?.farmApyComponents]
+        //   tmpAPYs.forEach((x) => {
+        //     console.log(x);
+        //     let name = x.name
+        //     let apr = x.apr
+        //     let apy = {name: apr}
+        //     newAPYs.push(apy)
+        //   })
+        // }
+          
         if( jardef !== undefined ) {
           let farmApyToUse = farm.apy*100;
           nonCompoundedYields = nonCompoundedYields.concat(getJarAprPfcore(jardef));

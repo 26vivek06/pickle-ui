@@ -839,6 +839,10 @@ export const JarGaugeCollapsible: FC<{
               </div>
             )}
           </Grid>
+          <Grid xs={24} sm={24} md={4} lg={4} css={{ textAlign: "center" }}>
+            <Data>{(((totalAPY + pickleAPYMax) ** (1/365)) - 1).toFixed(4) + "%" || "--"}</Data>
+            <Label>{t("balances.daily")}</Label>
+          </Grid>
           <Grid xs={24} sm={12} md={4} lg={4} css={{ textAlign: "center" }}>
             <Data isZero={tvlNum === 0}>${tvlStr}</Data>
             <Label>{t("balances.tvl")}</Label>
