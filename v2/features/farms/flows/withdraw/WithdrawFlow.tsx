@@ -44,7 +44,7 @@ const WithdrawFlow: FC<Props> = ({ jar, balances }) => {
   const decimals = jarDecimals(jar);
   const depositTokenBalanceBN = BigNumber.from(balances?.depositTokenBalance || "0");
   const pTokenBalanceBN = BigNumber.from(balances?.pAssetBalance || "0");
-  const pTokenBalance = parseFloat(ethers.utils.formatUnits(pTokenBalanceBN, 18));
+  const pTokenBalance = parseFloat(ethers.utils.formatUnits(pTokenBalanceBN, decimals));
 
   const transactionFactory = () => {
     if (!JarContract) return;
