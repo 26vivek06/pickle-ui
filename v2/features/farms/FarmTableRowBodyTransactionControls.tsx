@@ -25,6 +25,7 @@ const FarmsTableRowBodyTransactionControls: FC<Props> = ({ jar }) => {
   const userTokenData = useAppSelector((state) =>
     UserSelectors.selectTokenDataById(state, jar.details.apiKey),
   );
+  console.log(userTokenData)
   const data = getUserAssetDataWithPrices(jar, pfcore, userModel);
   const farmTokens = data.depositTokensInFarm.tokens;
   const picklesPending = data.earnedPickles.tokensVisible;

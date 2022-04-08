@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useTranslation } from "next-i18next";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 
 import { useAppSelector } from "v2/store";
 import Button from "v2/components/Button";
@@ -11,6 +11,8 @@ import ApprovalFlow from "./flows/approval/ApprovalFlow";
 import DepositFlow from "./flows/deposit/DepositFlow";
 import LoadingIndicator from "v2/components/LoadingIndicator";
 import WithdrawFlow from "./flows/withdraw/WithdrawFlow";
+import UniV3ApprovalFlow from "./flows/approval/UniV3ApprovalFlow";
+import { useUniV3 } from "./univ3/hooks";
 
 interface Props {
   jar: JarWithData;
@@ -25,6 +27,8 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
   const userTokenData = useAppSelector((state) =>
     UserSelectors.selectTokenDataById(state, jar.details.apiKey),
   );
+  const jarV3 = useUniV3(jar, pfcore);
+
   const data = getUserAssetDataWithPrices(jar, pfcore, userModel);
   const farmTokens = data.depositTokensInFarm.tokens;
   const picklesPending = data.earnedPickles.tokensVisible;
@@ -38,6 +42,7 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
 
   return (
     <div className="flex">
+      ree
       <div className="grow border self-start border-foreground-alt-500 rounded-xl p-4 mb-2 sm:mb-0 mr-3 sm:mr-6">
         <p className="font-title text-foreground-alt-200 font-medium text-base leading-5 mb-2">
           {t("v2.farms.depositedToken", { token: jar.depositToken.name })}
@@ -46,7 +51,7 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
           <span className="font-title text-primary font-medium text-base leading-5">
             {jarTokens}
           </span>
-          <ApprovalFlow type="jar" jar={jar} visible={!userHasJarAllowance} />
+          {/* <UniV3ApprovalFlow type="jar" jar={jar} visible={!userHasJarAllowance} /> */}
           {userHasJarAllowance && (
             <div className="grid grid-cols-2 gap-3">
               <DepositFlow jar={jar} balances={userTokenData} />

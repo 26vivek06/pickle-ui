@@ -39,8 +39,9 @@ const FarmsTableRowBody: FC<Props> = ({ jar }) => {
   const isUniV3 = jar.protocol === AssetProtocol.UNISWAP_V3;
   const token0Name = jar.depositToken.components?.[0];
   const token1Name = jar.depositToken.components?.[1];
-  const userBalanceToken0 = data.walletComponentTokens[token0Name || ""].tokens;
-  const userBalanceToken1 = data.walletComponentTokens[token1Name || ""].tokens;
+  const userBalanceToken0 = data.walletComponentTokens[token0Name || ""]?.tokens;
+  const userBalanceToken1 = data.walletComponentTokens[token1Name || ""]?.tokens;
+  console.log(userBalanceToken0)
 
   return (
     <td
@@ -52,10 +53,10 @@ const FarmsTableRowBody: FC<Props> = ({ jar }) => {
           {(isUniV3 && (
             <>
               <p className="font-title font-medium text-base leading-5">
-                {`${userBalanceToken0} ${token0Name?.toUpperCase()}`}
+                {`${userBalanceToken0 || "0"} ${token0Name?.toUpperCase()}`}
               </p>
               <p className="my-2 font-title font-medium text-base leading-5">
-                {`${userBalanceToken1} ${token1Name?.toUpperCase()}`}
+                {`${userBalanceToken1 || "0"} ${token1Name?.toUpperCase()}`}
               </p>
             </>
           )) || (
