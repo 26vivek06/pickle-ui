@@ -44,7 +44,6 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
 
   return (
     <div className="flex">
-      ree
       <div className="grow border self-start border-foreground-alt-500 rounded-xl p-4 mb-2 sm:mb-0 mr-3 sm:mr-6">
         <p className="font-title text-foreground-alt-200 font-medium text-base leading-5 mb-2">
           {t("v2.farms.depositedToken", { token: jar.depositToken.name })}

@@ -399,6 +399,7 @@
       "weeklyPickleAmount": "Weekly PICKLEs distributed"
     },
     "farms": {
+      "allApproved": "All approved!",
       "analytics": "Analytics",
       "approveToken": "Approve {{ token }}",
       "approveTokens": "Approve Tokens",

@@ -134,33 +134,15 @@ const UniV3ApprovalFlow: FC<Props> = ({ jar, visible, type, balances }) => {
     <>
       {visible && <Button onClick={openModal}>{t("v2.actions.approve")}</Button>}
       <Modal isOpen={isModalOpen} closeModal={closeModal} title={t("v2.farms.approveTokens")}>
-        {current.matches(States.AWAITING_CONFIRMATION) && (
-          <UniV3AwaitingConfirmation
-            error={error0 || error1}
-            sendTransaction0={transaction0}
-            sendTransaction1={transaction1}
-            isWaiting0={isWaiting0}
-            isWaiting1={isWaiting1}
-            balances={balances}
-          />
-        )}
-        {current.matches(States.AWAITING_RECEIPT) && (
-          <AwaitingReceipt chainExplorer={chain?.explorer} txHash={current.context.txHash} />
-        )}
-        {current.matches(States.SUCCESS) && (
-          <Success
-            chainExplorer={chain?.explorer}
-            txHash={current.context.txHash}
-            closeModal={closeModal}
-          />
-        )}
-        {current.matches(States.FAILURE) && (
-          <Failure
-            chainExplorer={chain?.explorer}
-            txHash={current.context.txHash}
-            retry={() => send(Actions.RESET)}
-          />
-        )}
+        <UniV3AwaitingConfirmation
+          error={error0 || error1}
+          sendTransaction0={transaction0}
+          sendTransaction1={transaction1}
+          isWaiting0={isWaiting0}
+          isWaiting1={isWaiting1}
+          balances={balances}
+          closeModal={closeModal}
+        />
       </Modal>
     </>
   );
