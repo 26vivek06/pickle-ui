@@ -23,7 +23,6 @@ const FarmsTableBody: FC<Props> = ({ simple, requiresUserModel }) => {
   const { t } = useTranslation("common");
   const core = useSelector(CoreSelectors.selectCore);
   const userModel = useSelector(UserSelectors.selectData);
-  console.log(userModel)
   let jars = useSelector(CoreSelectors.makeJarsSelector({ filtered: !simple, paginated: !simple }));
 
   // TODO Should be all assets, not just jars

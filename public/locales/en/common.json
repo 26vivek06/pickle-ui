@@ -401,6 +401,7 @@
     "farms": {
       "analytics": "Analytics",
       "approveToken": "Approve {{ token }}",
+      "approveTokens": "Approve Tokens",
       "apy": "APY",
       "apyBreakdown": "APY breakdown",
       "asset": "Asset",
@@ -429,6 +430,7 @@
       "filter": "Filter by token, protocol, or network",
       "getToken": "Get {{ token }}",
       "givePermission": "Give Pickle Finance permission to access your {{ token }}?",
+      "givePermissionV3": "Give Pickle Finance permission to access your tokens",
       "harvest": "Harvest",
       "harvestRewards": "Harvest rewards",
       "invalidAmount": "Please enter a valid deposit amount",

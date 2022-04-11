@@ -32,10 +32,14 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
   const picklesPending = data.earnedPickles.tokensVisible;
 
   const decimals = jarDecimals(jar);
-  const userHasJarAllowance = parseInt(userTokenData?.jarAllowance || "0") > 0;
+  const jarAllowanceToken0 = userTokenData?.componentTokenBalances[jar.token0?.name!].allowance;
+  const jarAllowanceToken1 = userTokenData?.componentTokenBalances[jar.token1?.name!].allowance;
+  const userHasJarAllowance =
+    parseInt(jarAllowanceToken0 || "0") > 0 && parseInt(jarAllowanceToken1 || "0") > 0;
   const jarTokens = parseFloat(
     ethers.utils.formatUnits(userTokenData?.pAssetBalance || "0", decimals),
   );
+
   const userHasFarmAllowance = parseInt(userTokenData?.farmAllowance || "0") > 0;
 
   return (
@@ -49,7 +53,12 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
           <span className="font-title text-primary font-medium text-base leading-5">
             {jarTokens}
           </span>
-          {/* <UniV3ApprovalFlow type="jar" jar={jar} visible={!userHasJarAllowance} /> */}
+          <UniV3ApprovalFlow
+            type="jar"
+            jar={jar}
+            visible={!userHasJarAllowance}
+            balances={userTokenData}
+          />
           {userHasJarAllowance && (
             <div className="grid grid-cols-2 gap-3">
               <DepositFlow jar={jar} balances={userTokenData} />
