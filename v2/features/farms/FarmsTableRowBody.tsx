@@ -41,7 +41,6 @@ const FarmsTableRowBody: FC<Props> = ({ jar }) => {
   const token1Name = jar.depositToken.components?.[1];
   const userBalanceToken0 = data.walletComponentTokens[token0Name || ""]?.tokens;
   const userBalanceToken1 = data.walletComponentTokens[token1Name || ""]?.tokens;
-  console.log(userBalanceToken0)
 
   return (
     <td

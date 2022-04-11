@@ -15,6 +15,5 @@ export const useUniV3 = (jar: JarWithData, core: PickleModelJson | undefined): J
   const found: JarDefinition | undefined = core.assets.jars.find(
     (x) => x.details?.apiKey === jar.details?.apiKey,
   );
-  console.log(found)
   return {} as JarWithDataV3;
 };

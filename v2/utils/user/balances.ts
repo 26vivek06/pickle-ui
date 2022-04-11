@@ -94,8 +94,8 @@ export const getUserAssetDataWithPrices = (
     token0 = jar.depositToken.components?.[0];
     token1 = jar.depositToken.components?.[1];
 
-    token0Balance = userTokenDetails.componentTokenBalances[token0 || ""];
-    token1Balance = userTokenDetails.componentTokenBalances[token1 || ""];
+    token0Balance = userTokenDetails.componentTokenBalances[token0 || ""].balance;
+    token1Balance = userTokenDetails.componentTokenBalances[token1 || ""].balance;
 
     const token0Wallet: UserAssetDataWithPricesComponent = createUserAssetDataComponent(
       BigNumber.from(token0Balance?.toString() || "0"),

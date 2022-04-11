@@ -12,7 +12,6 @@ import DepositFlow from "./flows/deposit/DepositFlow";
 import LoadingIndicator from "v2/components/LoadingIndicator";
 import WithdrawFlow from "./flows/withdraw/WithdrawFlow";
 import UniV3ApprovalFlow from "./flows/approval/UniV3ApprovalFlow";
-import { useUniV3 } from "./univ3/hooks";
 
 interface Props {
   jar: JarWithData;
@@ -27,7 +26,6 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
   const userTokenData = useAppSelector((state) =>
     UserSelectors.selectTokenDataById(state, jar.details.apiKey),
   );
-  const jarV3 = useUniV3(jar, pfcore);
 
   const data = getUserAssetDataWithPrices(jar, pfcore, userModel);
   const farmTokens = data.depositTokensInFarm.tokens;
