@@ -16,7 +16,7 @@ import { useTokenContract, useTransaction } from "../hooks";
 import { useAppDispatch, useAppSelector } from "v2/store";
 import { UserActions } from "v2/store/user";
 import { ApprovalEvent, Erc20 } from "containers/Contracts/Erc20";
-import UniV3AwaitingConfirmation from "./UniV3AwaitingConfirmation";
+import UniV3AwaitingConfirmation from "./AwaitingConfirmationUniV3";
 
 type ApprovalType = "jar" | "farm";
 
@@ -57,7 +57,7 @@ interface Props {
   visible: boolean;
 }
 
-const UniV3ApprovalFlow: FC<Props> = ({ jar, visible, type, balances }) => {
+const ApprovalFlowUniV3: FC<Props> = ({ jar, visible, type, balances }) => {
   const { t } = useTranslation("common");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const core = useAppSelector(CoreSelectors.selectCore);
@@ -71,7 +71,6 @@ const UniV3ApprovalFlow: FC<Props> = ({ jar, visible, type, balances }) => {
   const TokenContract0 = useTokenContract(token0Data.tokenAddress);
   const TokenContract1 = useTokenContract(token1Data.tokenAddress);
 
-  const chain = core?.chains.find((chain) => chain.network === jar.chain);
   const amount = ethers.constants.MaxUint256;
 
   const transactionFactory = (tokenContract: Erc20 | undefined) => {
@@ -148,4 +147,4 @@ const UniV3ApprovalFlow: FC<Props> = ({ jar, visible, type, balances }) => {
   );
 };
 
-export default UniV3ApprovalFlow;
+export default ApprovalFlowUniV3;

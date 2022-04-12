@@ -11,7 +11,7 @@ import FarmsTableRowDetails from "./FarmsTableRowDetails";
 import FarmsTableRowBodyTransactionControls from "./FarmTableRowBodyTransactionControls";
 import ConnectButton from "./ConnectButton";
 import { AssetProtocol } from "picklefinance-core/lib/model/PickleModelJson";
-import FarmsTableRowBodyV3TransactionControls from "./FarmTableRowBodyV3TransactionControls";
+import FarmsTableRowBodyV3TransactionControls from "./FarmTableRowBodyTransactionControlsUniV3";
 
 interface Props {
   jar: JarWithData;

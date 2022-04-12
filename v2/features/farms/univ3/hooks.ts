@@ -1,5 +1,5 @@
 import { JarWithData } from "v2/store/core";
-import { JarWithDataV3 } from "../FarmTableRowBodyV3TransactionControls";
+import { JarWithDataV3 } from "../FarmTableRowBodyTransactionControlsUniV3";
 import { JarDefinition, PickleModelJson } from "picklefinance-core/lib/model/PickleModelJson";
 
 export const useUniV3 = (jar: JarWithData, core: PickleModelJson | undefined): JarWithDataV3 => {

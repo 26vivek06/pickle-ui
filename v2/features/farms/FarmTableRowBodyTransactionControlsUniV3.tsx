@@ -11,7 +11,8 @@ import ApprovalFlow from "./flows/approval/ApprovalFlow";
 import DepositFlow from "./flows/deposit/DepositFlow";
 import LoadingIndicator from "v2/components/LoadingIndicator";
 import WithdrawFlow from "./flows/withdraw/WithdrawFlow";
-import UniV3ApprovalFlow from "./flows/approval/UniV3ApprovalFlow";
+import ApprovalFlowUniV3 from "./flows/approval/ApprovalFlowUniV3";
+import DepositFlowUniV3 from "./flows/deposit/DepositFlowUniV3";
 
 interface Props {
   jar: JarWithData;
@@ -52,7 +53,7 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
           <span className="font-title text-primary font-medium text-base leading-5">
             {jarTokens}
           </span>
-          <UniV3ApprovalFlow
+          <ApprovalFlowUniV3
             type="jar"
             jar={jar}
             visible={!userHasJarAllowance}
@@ -60,7 +61,7 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
           />
           {userHasJarAllowance && (
             <div className="grid grid-cols-2 gap-3">
-              <DepositFlow jar={jar} balances={userTokenData} />
+              <DepositFlowUniV3 jar={jar} balances={userTokenData} />
               <WithdrawFlow jar={jar} balances={userTokenData} />
             </div>
           )}
