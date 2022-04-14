@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useState } from "react";
+import { ChangeEvent, FC, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 
 import Button from "v2/components/Button";
@@ -10,7 +10,7 @@ interface Props {
   balance0: number;
   balance1: number;
   jar: JarWithData;
-  nextStep: (amount: string) => void;
+  nextStep: (amount: string, amount1: string) => void;
 }
 
 const FormUniV3: FC<Props> = ({ balance0, balance1, jar, nextStep }) => {
@@ -21,15 +21,16 @@ const FormUniV3: FC<Props> = ({ balance0, balance1, jar, nextStep }) => {
   const invalidAmountError = Error(t("v2.farms.invalidAmount"));
   const [error, setError] = useState<Error | undefined>();
 
-  const validate = (value: string, balance: number) => {
-    if (!value) {
+  const validate = () => {
+    const amount0Num = parseFloat(amount0);
+    const amount1Num = parseFloat(amount1);
+    if (!amount0 || !amount1) {
       setError(invalidAmountError);
       return;
     }
 
-    const amount = parseFloat(value);
-    const isValid = amount > 0 && amount <= balance;
-
+    const isValid =
+      (amount0Num > 0 || amount1Num) && amount0Num <= balance0 && amount1Num <= balance1;
     isValid ? setError(undefined) : setError(invalidAmountError);
   };
 
@@ -37,19 +38,22 @@ const FormUniV3: FC<Props> = ({ balance0, balance1, jar, nextStep }) => {
     const { value } = event.target;
 
     setAmount0(value);
-    validate(value, balance0);
   };
 
   const handleChange1 = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
 
     setAmount1(value);
-    validate(value, balance1);
   };
+
+  useEffect(() => {
+    validate();
+  }, [amount0, amount1]);
+  
   const handleFormSubmit = () => {
     if (error) return;
 
-    nextStep(amount0);
+    nextStep(amount0, amount1);
   };
 
   return (
@@ -78,7 +82,6 @@ const FormUniV3: FC<Props> = ({ balance0, balance1, jar, nextStep }) => {
             size="small"
             onClick={() => {
               setAmount0(balance0.toString());
-              validate(balance0.toString(), balance0);
             }}
           >
             {t("v2.balances.max")}
@@ -110,7 +113,6 @@ const FormUniV3: FC<Props> = ({ balance0, balance1, jar, nextStep }) => {
             size="small"
             onClick={() => {
               setAmount1(balance1.toString());
-              validate(balance1.toString(), balance1);
             }}
           >
             {t("v2.balances.max")}

@@ -17,7 +17,7 @@ import AwaitingConfirmation from "./AwaitingConfirmationUniV3";
 import AwaitingReceipt from "../AwaitingReceipt";
 import Success from "../Success";
 import Failure from "../Failure";
-import { useJarContract, useTransaction } from "../hooks";
+import { useJarContract, useTransactionUniV3, useUniV3JarContract } from "../hooks";
 import { TransferEvent } from "containers/Contracts/Jar";
 import { UserActions } from "v2/store/user";
 import { formatDollars, truncateToMaxDecimals } from "v2/utils";
@@ -38,65 +38,102 @@ const DepositFlowUniV3: FC<Props> = ({ jar, balances }) => {
   const dispatch = useAppDispatch();
 
   const { contract } = jar;
-  const JarContract = useJarContract(contract);
+  const JarContract = useUniV3JarContract(contract);
 
   const chain = core?.chains.find((chain) => chain.network === jar.chain);
 
+  const token0Name = jar.token0!.name;
+  const token1Name = jar.token1!.name;
+
   const token0Decimals =
-    core?.tokens.find((x) => x.chain === jar.chain && x.id === jar.token0!.name)?.decimals || 18;
+    core?.tokens.find((x) => x.chain === jar.chain && x.id === token0Name)?.decimals || 18;
 
   const token1Decimals =
-    core?.tokens.find((x) => x.chain === jar.chain && x.id === jar.token1!.name)?.decimals || 18;
+    core?.tokens.find((x) => x.chain === jar.chain && x.id === token1Name)?.decimals || 18;
 
-  const token0Data = balances?.componentTokenBalances[jar.token0!.name];
-  const token1Data = balances?.componentTokenBalances[jar.token1!.name];
+  const token0Data = balances?.componentTokenBalances[token0Name];
+  const token1Data = balances?.componentTokenBalances[token1Name];
 
   const depositToken0BalanceBN = BigNumber.from(token0Data?.balance || "0");
-  const depositToken0Balance = parseFloat(ethers.utils.formatUnits(depositToken0BalanceBN, token0Decimals));
-
+  const depositToken0Balance = parseFloat(
+    ethers.utils.formatUnits(depositToken0BalanceBN, token0Decimals),
+  );
 
   const depositToken1BalanceBN = BigNumber.from(token1Data?.balance || "0");
-  const depositToken1Balance = parseFloat(ethers.utils.formatUnits(depositToken1BalanceBN, token1Decimals));
+  const depositToken1Balance = parseFloat(
+    ethers.utils.formatUnits(depositToken1BalanceBN, token1Decimals),
+  );
 
   const pTokenBalanceBN = BigNumber.from(balances?.pAssetBalance || "0");
+
+  const isFrax = token0Name === "frax" || token1Name === "frax";
 
   const transactionFactory = () => {
     if (!JarContract) return;
 
-    const amount = ethers.utils.parseUnits(truncateToMaxDecimals(current.context.amount), token0Decimals);
+    const amount0 = ethers.utils.parseUnits(
+      truncateToMaxDecimals(current.context.amount),
+      token0Decimals,
+    );
 
-    return () => JarContract.deposit(amount);
+    const amount1 = ethers.utils.parseUnits(
+      truncateToMaxDecimals(current.context.amount1 || "0"),
+      token0Decimals,
+    );
+
+    // Non-Frax UniV3 jars have an extra bool argument for zapping
+    const funcSig = `deposit(uint256,uint256${!isFrax ? ",bool" : ""})`;
+    return () => JarContract[funcSig](amount0, amount1);
   };
 
   const callback = (receipt: ethers.ContractReceipt) => {
     if (!account) return;
 
     /**
-     * This will generate two events:
-     * 1) Transfer of LP tokens from user's wallet to the jar
+     * This will generate three events:
+     * 1) 2x Transfer of component tokens from user's wallet to the jar
      * 2) Mint of pTokens sent to user's wallet
      */
     const events = receipt.events?.filter(({ event }) => event === "Transfer") as TransferEvent[];
-    const depositTokenTransferEvent = events.find((event) => event.args.from === account)!;
+    const token0TransferEvent = events.find(
+      (event) =>
+        event.args.from === account &&
+        event.address.toLowerCase() === jar.token0!.address.toLowerCase(),
+    )!;
+    const token1TransferEvent = events.find(
+      (event) =>
+        event.args.from === account &&
+        event.address.toLowerCase() === jar.token1!.address.toLowerCase(),
+    )!;
+
     const pTokenTransferEvent = events.find((event) => event.args.to === account)!;
 
-    const depositTokenBalance = depositTokenBalanceBN
-      .sub(depositTokenTransferEvent.args.value)
-      .toString();
+    const newToken0Balance = depositToken0BalanceBN.sub(token0TransferEvent.args.value).toString();
+
+    const newToken1Balance = depositToken1BalanceBN.sub(token1TransferEvent.args.value).toString();
     const pAssetBalance = pTokenBalanceBN.add(pTokenTransferEvent.args.value).toString();
 
     dispatch(
       UserActions.setTokenData({
         apiKey: jar.details.apiKey,
         data: {
-          depositTokenBalance,
+          componentTokenBalances: {
+            [token0Name]: {
+              ...balances!.componentTokenBalances[token0Name],
+              balance: newToken0Balance,
+            },
+            [token1Name]: {
+              ...balances!.componentTokenBalances[token1Name],
+              balance: newToken1Balance,
+            },
+          },
           pAssetBalance,
         },
       }),
     );
   };
 
-  const { sendTransaction, error, setError, isWaiting } = useTransaction(
+  const { sendTransaction, error, setError, isWaiting } = useTransactionUniV3(
     transactionFactory(),
     callback,
     send,
@@ -110,16 +147,19 @@ const DepositFlowUniV3: FC<Props> = ({ jar, balances }) => {
   const closeModal = () => setIsModalOpen(false);
 
   const equivalentValue = () => {
-    const depositTokenPrice = jar.depositToken.price;
+    const token0Price = core?.tokens.find((x) => x.id === token0Name)?.price || 0;
+    const token1Price = core?.tokens.find((x) => x.id === token1Name)?.price || 0;
 
-    if (!depositTokenPrice) return;
+    if (!token0Price || !token1Price) return "$0";
 
-    const valueUSD = parseFloat(current.context.amount) * depositTokenPrice;
+    const valueUSD =
+      parseFloat(current.context.amount) * token0Price +
+      parseFloat(current.context.amount1 || "0") * token1Price;
 
     return `~ ${formatDollars(valueUSD)}`;
   };
 
-  const enabled = depositToken0Balance > 0 || depositToken1Balance > 0 
+  const enabled = depositToken0Balance > 0 || depositToken1Balance > 0;
 
   return (
     <>
@@ -143,15 +183,19 @@ const DepositFlowUniV3: FC<Props> = ({ jar, balances }) => {
             balance0={depositToken0Balance}
             balance1={depositToken1Balance}
             jar={jar}
-            nextStep={(amount: string) => send(Actions.SUBMIT_FORM, { amount })}
+            nextStep={(amount: string, amount1: string) =>
+              send(Actions.SUBMIT_FORM, { amount, amount1 })
+            }
           />
         )}
         {current.matches(States.AWAITING_CONFIRMATION) && (
           <AwaitingConfirmationUniV3
             title={t("v2.farms.confirmDeposit")}
             cta={t("v2.actions.deposit")}
-            tokenName={jar.depositToken.name}
-            amount={current.context.amount}
+            token0Name={token0Name}
+            token1Name={token1Name}
+            amount0={current.context.amount}
+            amount1={current.context.amount1 || "0"}
             equivalentValue={equivalentValue()}
             error={error}
             sendTransaction={sendTransaction}

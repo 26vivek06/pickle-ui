@@ -8,7 +8,9 @@ import { ethers } from "ethers";
 import { Erc20__factory as Erc20Factory } from "containers/Contracts/factories/Erc20__factory";
 import { Erc20 } from "containers/Contracts/Erc20";
 import { Jar__factory as JarFactory } from "containers/Contracts/factories/Jar__factory";
+import { JarV3__factory as JarV3Factory } from "containers/Contracts/factories/JarV3__factory";
 import { Jar } from "containers/Contracts/Jar";
+import { JarV3 } from "containers/Contracts/JarV3";
 
 import { useAppDispatch } from "v2/store";
 import { Actions } from "./stateMachineUserInput";
@@ -38,7 +40,61 @@ export const useJarContract = (address: string) => {
   return JarContract;
 };
 
+export const useUniV3JarContract = (address: string) => {
+  const { library } = useWeb3React<Web3Provider>();
+
+  const JarContract = useMemo<JarV3 | undefined>(() => {
+    if (!library) return;
+
+    return JarV3Factory.connect(address, library.getSigner());
+  }, [library, address]);
+
+  return JarContract;
+};
+
+
 export const useTransaction = (
+  transactionFactory: (() => Promise<ethers.ContractTransaction>) | undefined,
+  callback: (receipt: ethers.ContractReceipt) => void,
+  send: ReturnType<typeof useMachine>[1],
+  showConfetti: boolean = false,
+) => {
+  const [error, setError] = useState<Error | undefined>();
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
+
+  const sendTransaction = async () => {
+    if (!transactionFactory) return;
+
+    setError(undefined);
+    setIsWaiting(true);
+
+    try {
+      const tx = await transactionFactory();
+
+      send(Actions.TRANSACTION_SENT, { txHash: tx.hash });
+
+      tx.wait()
+        .then(
+          (receipt) => {
+            callback(receipt);
+            send(Actions.SUCCESS);
+
+            if (showConfetti) dispatch(ThemeActions.setIsConfettiOn(true));
+          },
+          () => send(Actions.FAILURE),
+        )
+        .finally(() => setIsWaiting(false));
+    } catch (error) {
+      setError(error as Error);
+      setIsWaiting(false);
+    }
+  };
+
+  return { sendTransaction, error, setError, isWaiting };
+};
+
+export const useTransactionUniV3 = (
   transactionFactory: (() => Promise<ethers.ContractTransaction>) | undefined,
   callback: (receipt: ethers.ContractReceipt) => void,
   send: ReturnType<typeof useMachine>[1],

@@ -9,7 +9,8 @@ import { classNames } from "v2/utils";
 import MoreInfo from "v2/components/MoreInfo";
 
 interface Props {
-  amount: string;
+  amount0: string;
+  amount1: string;
   cta: string;
   error: Error | undefined;
   equivalentValue: string | undefined;
@@ -17,11 +18,13 @@ interface Props {
   previousStep: () => void;
   sendTransaction: () => void;
   title: string;
-  tokenName: string | undefined;
+  token0Name: string | undefined;
+  token1Name: string | undefined;
 }
 
 const AwaitingConfirmationUniV3: FC<Props> = ({
-  amount,
+  amount0,
+  amount1,
   cta,
   equivalentValue,
   error,
@@ -29,7 +32,8 @@ const AwaitingConfirmationUniV3: FC<Props> = ({
   previousStep,
   sendTransaction,
   title,
-  tokenName,
+  token0Name,
+  token1Name,
 }) => {
   const { t } = useTranslation("common");
 
@@ -39,11 +43,21 @@ const AwaitingConfirmationUniV3: FC<Props> = ({
         <PencilIcon className="w-20 h-20 text-primary" />
       </div>
       <h2 className="text-foreground-alt-100 font-title text-lg mt-6 mb-4">{title}</h2>
-      <p className="text-foreground-alt-200 text-sm mb-8">
-        <span className="font-title text-primary text-base mr-2">{amount}</span>
-        {tokenName}
-        {equivalentValue && <MoreInfo secondaryText={equivalentValue} />}
-      </p>
+      <div className="flex justify-center items-center mb-4">
+        <span className="text-foreground-alt-200 text-sm mr-3">
+          <span className="font-title text-primary text-base mr-2">
+            {parseFloat(amount0).toFixed(4)}
+          </span>
+          {token0Name?.toUpperCase()}
+        </span>
+        <span className="text-foreground-alt-200 text-sm">
+          <span className="font-title text-primary text-base mr-2">
+            {parseFloat(amount1).toFixed(4)}
+          </span>
+          {token1Name?.toUpperCase()}
+          {equivalentValue && <MoreInfo secondaryText={equivalentValue} />}
+        </span>
+      </div>
       <Error error={error} />
       <div className="flex justify-center items-center">
         <Button type="secondary" onClick={previousStep} className="mr-3">

@@ -85,7 +85,6 @@ const ApprovalFlowUniV3: FC<Props> = ({ jar, visible, type, balances }) => {
     const approvalEvent = receipt.events?.find(
       ({ event }) => event === "Approval",
     ) as ApprovalEvent;
-    console.log(approvalEvent);
     const approvedAmount = approvalEvent.args[2];
 
     const tokenAddress = approvalEvent.address;
