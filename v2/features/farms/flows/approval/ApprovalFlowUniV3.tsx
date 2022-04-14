@@ -60,7 +60,6 @@ interface Props {
 const ApprovalFlowUniV3: FC<Props> = ({ jar, visible, type, balances }) => {
   const { t } = useTranslation("common");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const core = useAppSelector(CoreSelectors.selectCore);
   const [current, send] = useMachine(stateMachine);
   const dispatch = useAppDispatch();
   const approvalConfig = approvalData(jar, type);

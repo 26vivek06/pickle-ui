@@ -419,6 +419,7 @@
     },
     "farms": {
       "allApproved": "All approved!",
+      "approvalBalanceError": "Please get your hands on some deposit tokens first!",
       "analytics": "Analytics",
       "approveToken": "Approve {{ token }}",
       "approveTokens": "Approve Tokens",

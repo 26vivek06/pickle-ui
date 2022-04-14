@@ -28,7 +28,15 @@ const UniV3AwaitingConfirmation: FC<Props> = ({
   closeModal,
 }) => {
   const { t } = useTranslation("common");
-  if (!balances) return <></>;
+  if (!balances)
+    return (
+      <>
+        {" "}
+        <div className="font-title mb-2 text-lg text-foreground-alt-200">
+          {t("v2.farms.approvalBalanceError")}
+        </div>
+      </>
+    );
 
   const title = t("v2.farms.givePermissionV3");
   const [token0, token1] = Object.keys(balances.componentTokenBalances);
@@ -44,7 +52,7 @@ const UniV3AwaitingConfirmation: FC<Props> = ({
       <h2 className="text-foreground-alt-100 font-title text-lg my-6">{title}</h2>
       <Error error={error} />
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-2">
         <Button
           onClick={sendTransaction0}
           state={isWaiting0 || jarAllowedToken0 ? "disabled" : "enabled"}
