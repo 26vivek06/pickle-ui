@@ -43,17 +43,16 @@ const Chart: FC<{
           cy="50%"
           outerRadius={140}
           strokeWidth={data.length >= 1 ? 1 : 10}
+          stroke={"rgb(var(--color-foreground-alt-100))"}
         >
-          {
-            data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={colorPicker(data, entry, index)}/>
-            ))
-          }
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={colorPicker(data, entry, index)} />
+          ))}
           <LabelList dataKey="weight" position="inside" formatter={formatPercentage} />
-          <LabelList dataKey="jar" position="outside" offset={20} />
+          <LabelList dataKey="jar" position="outside" offset={20} formatter={jarStratFormat} />
         </Pie>
         <Tooltip
-          labelFormatter={(label) => label.jar}
+          labelFormatter={(label: any) => jarStratFormat(label.jar)}
           formatter={(value: number) => formatPercentage(value)}
         />
       </PieChart>
@@ -80,9 +79,12 @@ const getMainnetPlatformWeights = (
       });
     }
   }
+  const other = chartData.filter((v) => v.weight < 0.05);
+  const sumOther = other.reduce((x, y) => x + y.weight, 0);
   chartData = sortByWeight(chartData)
-    .filter((v) => v.weight > 0.01)
+    .filter((v) => v.weight > 0.05)
     .slice(-15);
+  chartData.push({ jar: "Other", weight: sumOther });
   return chartData;
 };
 
@@ -100,9 +102,12 @@ const getSidechainPlatformWeights = (
       });
     }
   }
+  const other = chartData.filter((v) => v.weight < 0.05);
+  const sumOther = other.reduce((x, y) => x + y.weight, 0);
   chartData = sortByWeight(chartData)
-    .filter((v) => v.weight > 0.01)
+    .filter((v) => v.weight > 0.05)
     .slice(-15);
+  chartData.push({ jar: "Other", weight: sumOther });
   return chartData;
 };
 
@@ -150,13 +155,17 @@ const getSidechainUserWeights = (
   return chartData ? chartData : [];
 };
 
-const colorPicker = (d: PieChartData[], e: PieChartData,  n: number) => {
-  const evenColors = ["rgb(var(--color-primary-light))", "rgb(var(--color-primary))"]
-  const oddColors = ["rgb(var(--color-primary-light))", "rgb(var(--color-primary))", "rgb(var(--color-primary-dark))"]
-  if (d.length % 2 === 0) return evenColors[n % 2]
-  if (d.indexOf(e) === d.length - 1 && n % 3 == 0) return oddColors[1]
-  return oddColors[n % 3]
-}
+const colorPicker = (d: PieChartData[], e: PieChartData, n: number) => {
+  const evenColors = ["rgb(var(--color-primary-light))", "rgb(var(--color-primary))"];
+  const oddColors = [
+    "rgb(var(--color-primary-light))",
+    "rgb(var(--color-primary))",
+    "rgb(var(--color-primary-dark))",
+  ];
+  if (d.length % 2 === 0) return evenColors[n % 2];
+  if (d.indexOf(e) === d.length - 1 && n % 3 == 0) return oddColors[1];
+  return oddColors[n % 3];
+};
 
 const sortByWeight = (data: PieChartData[]) =>
   data ? data.sort((a, b) => (a.weight > b.weight ? 1 : -1)) : [];
@@ -165,5 +174,30 @@ interface PieChartData {
   jar: string;
   weight: number;
 }
+
+const jarStratFormat = (i: string) => {
+  const strats = [
+    {
+      label: "Delegate to the Pickle Team",
+      value: "strategy.delegate.team",
+    },
+    {
+      label: "Vote By TVL",
+      value: "strategy.tvl",
+    },
+    {
+      label: "Vote By Profit",
+      value: "strategy.profit",
+    },
+  ];
+
+  let label = i;
+  for (let n = 0; n < strats.length; n++)
+    if (strats[n].value === i) {
+      label = strats[n].label;
+    }
+
+  return label;
+};
 
 export default Chart;

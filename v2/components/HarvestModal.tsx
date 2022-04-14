@@ -4,6 +4,7 @@ import { useTranslation } from "next-i18next";
 
 import Button from "./Button";
 import Modal from "./Modal";
+import { roundToSignificantDigits } from "v2/utils";
 
 interface Props {
   harvestables: RewardRowProps[];
@@ -15,9 +16,6 @@ export interface RewardRowProps {
   descriptor: string;
   rewardCount: number;
   tokenString: string;
-  harvester: {
-    harvest: () => Promise<boolean>;
-  };
 }
 interface RewardRowPropWrapper {
   details: RewardRowProps;
@@ -45,10 +43,8 @@ const RewardRow: FC<RewardRowPropWrapper> = ({ details }) => {
             {details.descriptor}
           </p>
           <p className="text-primary font-bold text-lg align-bottom leading-6">
-            {details.rewardCount}
-            <span className="text-foreground text-xs ml-2">
-              {details.tokenString}
-            </span>
+            {roundToSignificantDigits(details.rewardCount, 5)}
+            <span className="text-foreground text-xs ml-2">{details.tokenString}</span>
           </p>
         </div>
       </div>
@@ -68,11 +64,7 @@ const HarvestModal: FC<Props> = ({ isOpen, closeModal, harvestables }) => {
   const { t } = useTranslation("common");
   const safeHarvestables = harvestables === undefined ? [] : harvestables;
   return (
-    <Modal
-      isOpen={isOpen}
-      closeModal={closeModal}
-      title={t("v2.farms.harvestRewards")}
-    >
+    <Modal isOpen={isOpen} closeModal={closeModal} title={t("v2.farms.harvestRewards")}>
       <div className="grid gap-9">
         {safeHarvestables.map((h) => {
           const key = h.descriptor;

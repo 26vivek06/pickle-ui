@@ -1,5 +1,6 @@
 import { FC, useEffect, useState } from "react";
-import { Button, Link, Input, Grid, Spacer, Card } from "@geist-ui/react";
+import { Button, Link, Input, Grid, Spacer, Card, Tooltip } from "@geist-ui/react";
+import ReactHtmlParser from "react-html-parser";
 import { useTranslation } from "next-i18next";
 import { formatEther, parseEther } from "ethers/lib/utils";
 import { formatPercent } from "../../util/number";
@@ -37,6 +38,7 @@ export const FraxFeature: FC = () => {
     userPendingFxs,
     pickleLockedFxs,
     tvl,
+    flywheelApr,
   } = useFrax();
 
   const [depositAmount, setDepositAmount] = useState("");
@@ -50,26 +52,17 @@ export const FraxFeature: FC = () => {
   });
 
   useEffect(() => {
-    const dStatus = getTransferStatus(
-      FraxAddresses.FXS,
-      FraxAddresses.veFXSVault,
-    );
+    const dStatus = getTransferStatus(FraxAddresses.FXS, FraxAddresses.veFXSVault);
     const claimStatus = getTransferStatus(FraxAddresses.veFXSVault, "claim");
 
-    setButtonStatus(
-      dStatus,
-      t("farms.depositing"),
-      t("farms.deposit"),
-      setDepositButton,
-    );
+    setButtonStatus(dStatus, t("farms.depositing"), t("farms.deposit"), setDepositButton);
 
-    setButtonStatus(
-      claimStatus,
-      t("dill.claiming"),
-      t("dill.claim"),
-      setClaimButton,
-    );
+    setButtonStatus(claimStatus, t("dill.claiming"), t("dill.claim"), setClaimButton);
   }, [erc20TransferStatuses, fxsBalance]);
+
+  const tooltipText = ` ${t("frax.aprBreakdown")}<br/><br/>${t(
+    "frax.fxsDistribution",
+  )}: ${formatPercent(fxsApr)}<br/>${t("frax.flywheelProfits")}: ${formatPercent(flywheelApr)}<br/>ㅤ`;
 
   return (
     <>
@@ -109,11 +102,9 @@ export const FraxFeature: FC = () => {
                     token: FraxAddresses.FXS,
                     recipient: FraxAddresses.veFXSVault,
                     transferCallback: async () => {
-                      return vefxsVault
-                        .connect(signer)
-                        .deposit(parseEther(depositAmount), {
-                          gasLimit: 1200000,
-                        });
+                      return vefxsVault.connect(signer).deposit(parseEther(depositAmount), {
+                        gasLimit: 900000,
+                      });
                     },
                   });
                 }
@@ -134,24 +125,21 @@ export const FraxFeature: FC = () => {
             <Button
               disabled={claimButton.disabled || !userPendingFxs}
               onClick={() => {
-                  if (signer && vefxsVault) {
-                    transfer({
-                      token: FraxAddresses.FXS,
-                      recipient: FraxAddresses.veFXSVault,
-                      transferCallback: async () => {
-                        return vefxsVault
-                          .connect(signer)
-                          .claim({
-                            gasLimit: 650000,
-                          });
-                      },
-                    });
-                  }
+                if (signer && vefxsVault) {
+                  transfer({
+                    token: FraxAddresses.FXS,
+                    recipient: FraxAddresses.veFXSVault,
+                    transferCallback: async () => {
+                      return vefxsVault.connect(signer).claim({
+                        gasLimit: 650000,
+                      });
+                    },
+                  });
+                }
               }}
               style={{ width: "100%" }}
             >
-              {claimButton.text}{" "}
-              {Boolean(userPendingFxs) && `${formatNumber(userPendingFxs)} FXS`}
+              {claimButton.text} {Boolean(userPendingFxs) && `${formatNumber(userPendingFxs)} FXS`}
             </Button>
             <Spacer y={1} />
           </Grid>
@@ -160,7 +148,13 @@ export const FraxFeature: FC = () => {
             <Card>
               <h2>{t("frax.info")}</h2>
               <div>
-                {t("frax.apy")}: {formatPercent(fxsApr)}
+                {t("frax.apy")}:{" "}
+                <Tooltip
+                  text={flywheelApr + fxsApr === 0 ? "--" : ReactHtmlParser(tooltipText)}
+                  style={{ marginTop: 5 }}
+                >
+                  <div style={{ display: "flex" }}>{formatPercent(flywheelApr + fxsApr)}</div>
+                </Tooltip>
               </div>
               &nbsp;
               <div>

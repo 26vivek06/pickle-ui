@@ -6,8 +6,9 @@ import { BigNumber, ethers } from "ethers";
 import { useMachine } from "@xstate/react";
 import { useSelector } from "react-redux";
 import { UserTokenData } from "picklefinance-core/lib/client/UserModel";
+import { Chains } from "picklefinance-core";
 
-import { useAppDispatch } from "v2/store";
+import { AppDispatch } from "v2/store";
 import Button from "v2/components/Button";
 import Modal from "v2/components/Modal";
 import { CoreSelectors, JarWithData } from "v2/store/core";
@@ -22,6 +23,7 @@ import { useJarContract, useTransaction } from "../hooks";
 import { TransferEvent } from "containers/Contracts/Jar";
 import { UserActions } from "v2/store/user";
 import { truncateToMaxDecimals } from "v2/utils";
+import { eventsByName } from "../utils";
 
 interface Props {
   jar: JarWithData;
@@ -35,13 +37,11 @@ const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
   const core = useSelector(CoreSelectors.selectCore);
   const [current, send] = useMachine(stateMachine);
   const { account } = useWeb3React<Web3Provider>();
-  const dispatch = useAppDispatch();
 
   const { contract } = jar;
   const JarContract = useJarContract(contract);
 
-  const chain = core?.chains.find((chain) => chain.network === jar.chain);
-
+  const chain = Chains.get(jar.chain);
   const decimals = jarDecimals(jar);
   const depositTokenBalanceBN = BigNumber.from(balances?.depositTokenBalance || "0");
   const pTokenBalanceBN = BigNumber.from(balances?.pAssetBalance || "0");
@@ -55,7 +55,7 @@ const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
     return () => JarContract.withdraw(amount);
   };
 
-  const callback = (receipt: ethers.ContractReceipt) => {
+  const callback = (receipt: ethers.ContractReceipt, dispatch: AppDispatch) => {
     if (!account) return;
 
     /**
@@ -63,9 +63,9 @@ const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
      * 1) Burn of pTokens taken out of user's wallet
      * 2) Transfer of LP tokens back to user's wallet
      */
-    const events = receipt.events?.filter(({ event }) => event === "Transfer") as TransferEvent[];
+    const transferEvents = eventsByName<TransferEvent>(receipt, "Transfer");
+    const pTokenTransferEvent = transferEvents.find((event) => event.args.from === account)!;
 
-    const pTokenTransferEvent = events.find((event) => event.args.from === account)!;
     const pAssetBalance = pTokenBalanceBN.sub(pTokenTransferEvent.args.value).toString();
 
     if (isUniV3) {
@@ -77,12 +77,12 @@ const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
       const depositToken0BalanceBN = BigNumber.from(token0Data?.balance || "0");
       const depositToken1BalanceBN = BigNumber.from(token1Data?.balance || "0");
 
-      const token0TransferEvent = events.find(
+      const token0TransferEvent = transferEvents.find(
         (event) =>
           event.args.to === account &&
           event.address.toLowerCase() === jar.token0!.address.toLowerCase(),
       )!;
-      const token1TransferEvent = events.find(
+      const token1TransferEvent = transferEvents.find(
         (event) =>
           event.args.to === account &&
           event.address.toLowerCase() === jar.token1!.address.toLowerCase(),
@@ -114,7 +114,7 @@ const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
         }),
       );
     } else {
-      const depositTokenTransferEvent = events.find((event) => event.args.to === account)!;
+      const depositTokenTransferEvent = transferEvents.find((event) => event.args.to === account)!;
 
       const depositTokenBalance = depositTokenBalanceBN
         .add(depositTokenTransferEvent.args.value)
@@ -158,9 +158,7 @@ const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
       <Button
         type="secondary"
         state={pTokenBalance > 0 ? "enabled" : "disabled"}
-        onClick={() => {
-          if (pTokenBalance > 0) openModal();
-        }}
+        onClick={openModal}
         className="w-11"
       >
         -

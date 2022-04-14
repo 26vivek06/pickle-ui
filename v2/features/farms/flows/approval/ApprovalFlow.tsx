@@ -2,84 +2,70 @@ import { FC, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { ethers } from "ethers";
 import { useMachine } from "@xstate/react";
-import { UserTokenData } from "picklefinance-core/lib/client/UserModel";
+import { IUserDillStats, UserTokenData } from "picklefinance-core/lib/client/UserModel";
+import { ChainNetwork, Chains } from "picklefinance-core";
 
 import Button from "v2/components/Button";
 import Modal from "v2/components/Modal";
-import { CoreSelectors, JarWithData } from "v2/store/core";
 import { stateMachine, Actions, States } from "../stateMachineNoUserInput";
 import AwaitingConfirmation from "./AwaitingConfirmation";
 import AwaitingReceipt from "../AwaitingReceipt";
 import Success from "../Success";
 import Failure from "../Failure";
 import { useTokenContract, useTransaction } from "../hooks";
-import { useAppDispatch, useAppSelector } from "v2/store";
+import { AppDispatch } from "v2/store";
 import { UserActions } from "v2/store/user";
 import { ApprovalEvent } from "containers/Contracts/Erc20";
+import { eventsByName } from "../utils";
 
-type ApprovalType = "jar" | "farm";
-
-interface ApprovalData {
+interface Props {
+  apiKey?: string;
   tokenAddress: string;
   tokenName: string | undefined;
   spenderAddress: string | undefined;
-  storeAttribute: keyof UserTokenData;
-}
-
-const approvalData = (jar: JarWithData, type: ApprovalType): ApprovalData => {
-  if (type === "jar") {
-    return {
-      tokenAddress: jar.depositToken.addr,
-      tokenName: jar.depositToken.name,
-      spenderAddress: jar.contract,
-      storeAttribute: "jarAllowance",
-    };
-  }
-
-  return {
-    tokenAddress: jar.contract,
-    tokenName: jar.farm?.farmDepositTokenName,
-    spenderAddress: jar.farm?.farmAddress,
-    storeAttribute: "farmAllowance",
-  };
-};
-
-interface Props {
-  jar: JarWithData;
-  type: ApprovalType;
+  storeAttribute: keyof UserTokenData | keyof IUserDillStats;
+  chainName: ChainNetwork;
   visible: boolean;
 }
 
-const ApprovalFlow: FC<Props> = ({ jar, visible, type }) => {
+const ApprovalFlow: FC<Props> = ({
+  apiKey,
+  tokenAddress,
+  tokenName,
+  spenderAddress,
+  storeAttribute,
+  chainName,
+  visible,
+}) => {
   const { t } = useTranslation("common");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const core = useAppSelector(CoreSelectors.selectCore);
   const [current, send] = useMachine(stateMachine);
-  const dispatch = useAppDispatch();
-  const approvalConfig = approvalData(jar, type);
-  const TokenContract = useTokenContract(approvalConfig.tokenAddress);
+  const TokenContract = useTokenContract(tokenAddress);
 
-  const chain = core?.chains.find((chain) => chain.network === jar.chain);
+  const chain = Chains.get(chainName);
   const amount = ethers.constants.MaxUint256;
 
   const transactionFactory = () => {
-    const { spenderAddress } = approvalConfig;
-
     if (!TokenContract || !spenderAddress) return;
 
     return () => TokenContract.approve(spenderAddress, amount);
   };
 
-  const callback = (receipt: ethers.ContractReceipt) => {
-    const approvalEvent = receipt.events?.find(
-      ({ event }) => event === "Approval",
-    ) as ApprovalEvent;
-    const approvedAmount = approvalEvent.args[2];
+  const callback = (receipt: ethers.ContractReceipt, dispatch: AppDispatch) => {
+    const approvalEvents = eventsByName<ApprovalEvent>(receipt, "Approval");
+    const approvedAmount = approvalEvents[0].args[2];
+
+    // No apiKey implicitly means DILL approval.
+    if (!apiKey) {
+      dispatch(UserActions.setDillData({ [storeAttribute]: approvedAmount.toString() }));
+
+      return;
+    }
 
     dispatch(
       UserActions.setTokenData({
-        apiKey: jar.details.apiKey,
-        data: { [approvalConfig.storeAttribute]: approvedAmount.toString() },
+        apiKey: apiKey,
+        data: { [storeAttribute]: approvedAmount.toString() },
       }),
     );
   };
@@ -102,11 +88,11 @@ const ApprovalFlow: FC<Props> = ({ jar, visible, type }) => {
       <Modal
         isOpen={isModalOpen}
         closeModal={closeModal}
-        title={t("v2.farms.approveToken", { token: approvalConfig.tokenName })}
+        title={t("v2.farms.approveToken", { token: tokenName })}
       >
         {current.matches(States.AWAITING_CONFIRMATION) && (
           <AwaitingConfirmation
-            tokenName={approvalConfig.tokenName}
+            tokenName={tokenName}
             error={error}
             sendTransaction={sendTransaction}
             isWaiting={isWaiting}

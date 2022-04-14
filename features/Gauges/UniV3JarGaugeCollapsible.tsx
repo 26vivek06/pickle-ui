@@ -8,7 +8,7 @@ import ReactHtmlParser from "react-html-parser";
 import { withStyles } from "@material-ui/core/styles";
 import Switch from "@material-ui/core/Switch";
 import { Connection } from "../../containers/Connection";
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
 import { Contracts } from "../../containers/Contracts";
 import { ERC20Transfer } from "../../containers/Erc20Transfer";
 import Collapse from "../Collapsible/Collapse";
@@ -56,7 +56,8 @@ const formatAPY = (apy: number) => {
   return apy.toFixed(2) + "%";
 };
 
-export const toNum = (bn: BigNumber) => parseFloat(formatEther(bn ? bn : BigNumber.from(0)));
+export const toNum = (bn: BigNumber, decimals: number = 18) =>
+  parseFloat(formatUnits(bn ? bn : BigNumber.from(0), decimals));
 
 export const formatValue = (num: number) =>
   num.toLocaleString(undefined, {
@@ -101,6 +102,10 @@ export const JAR_DEPOSIT_TOKEN_TO_ICON: {
   // PICKLE/WETH 1%
   "0xFCfDFC98062d13a11cec48c44E4613eB26a34293": (
     <LpIcon swapIconSrc={"/uniswap.png"} tokenIconSrc={"/tokens/cow.png"} />
+  ),
+  // APE/WETH 0.3%
+  "0xAc4b3DacB91461209Ae9d41EC517c2B9Cb1B7DAF": (
+    <LpIcon swapIconSrc={"/uniswap.png"} tokenIconSrc={"/tokens/apecoin.png"} />
   ),
 };
 

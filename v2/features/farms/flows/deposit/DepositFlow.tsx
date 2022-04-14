@@ -4,13 +4,13 @@ import type { Web3Provider } from "@ethersproject/providers";
 import { useWeb3React } from "@web3-react/core";
 import { BigNumber, ethers } from "ethers";
 import { useMachine } from "@xstate/react";
-import { useSelector } from "react-redux";
+import { Chains } from "picklefinance-core";
 import { UserTokenData } from "picklefinance-core/lib/client/UserModel";
 
-import { useAppDispatch } from "v2/store";
+import { AppDispatch } from "v2/store";
 import Button from "v2/components/Button";
 import Modal from "v2/components/Modal";
-import { CoreSelectors, JarWithData } from "v2/store/core";
+import { JarWithData } from "v2/store/core";
 import { stateMachine, Actions, States } from "../stateMachineUserInput";
 import Form from "./Form";
 import { jarDecimals } from "v2/utils/user";
@@ -22,6 +22,7 @@ import { useJarContract, useTransaction } from "../hooks";
 import { TransferEvent } from "containers/Contracts/Jar";
 import { UserActions } from "v2/store/user";
 import { formatDollars, truncateToMaxDecimals } from "v2/utils";
+import { eventsByName } from "../utils";
 
 interface Props {
   jar: JarWithData;
@@ -31,15 +32,12 @@ interface Props {
 const DepositFlow: FC<Props> = ({ jar, balances }) => {
   const { t } = useTranslation("common");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const core = useSelector(CoreSelectors.selectCore);
   const [current, send] = useMachine(stateMachine);
   const { account } = useWeb3React<Web3Provider>();
-  const dispatch = useAppDispatch();
 
+  const chain = Chains.get(jar.chain);
   const { contract } = jar;
   const JarContract = useJarContract(contract);
-
-  const chain = core?.chains.find((chain) => chain.network === jar.chain);
 
   const decimals = jarDecimals(jar);
   const depositTokenBalanceBN = BigNumber.from(balances?.depositTokenBalance || "0");
@@ -54,7 +52,7 @@ const DepositFlow: FC<Props> = ({ jar, balances }) => {
     return () => JarContract.deposit(amount);
   };
 
-  const callback = (receipt: ethers.ContractReceipt) => {
+  const callback = (receipt: ethers.ContractReceipt, dispatch: AppDispatch) => {
     if (!account) return;
 
     /**
@@ -62,9 +60,9 @@ const DepositFlow: FC<Props> = ({ jar, balances }) => {
      * 1) Transfer of LP tokens from user's wallet to the jar
      * 2) Mint of pTokens sent to user's wallet
      */
-    const events = receipt.events?.filter(({ event }) => event === "Transfer") as TransferEvent[];
-    const depositTokenTransferEvent = events.find((event) => event.args.from === account)!;
-    const pTokenTransferEvent = events.find((event) => event.args.to === account)!;
+    const transferEvents = eventsByName<TransferEvent>(receipt, "Transfer");
+    const depositTokenTransferEvent = transferEvents.find((event) => event.args.from === account)!;
+    const pTokenTransferEvent = transferEvents.find((event) => event.args.to === account)!;
 
     const depositTokenBalance = depositTokenBalanceBN
       .sub(depositTokenTransferEvent.args.value)
@@ -110,9 +108,7 @@ const DepositFlow: FC<Props> = ({ jar, balances }) => {
       <Button
         type="primary"
         state={depositTokenBalance > 0 ? "enabled" : "disabled"}
-        onClick={() => {
-          if (depositTokenBalance > 0) openModal();
-        }}
+        onClick={openModal}
         className="w-11"
       >
         +

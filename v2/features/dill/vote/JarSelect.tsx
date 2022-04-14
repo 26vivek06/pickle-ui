@@ -9,8 +9,15 @@ export const JarSelect: FC<{
   selectedJars: string[];
   selectedJarStrats?: string[];
   setSelectedJars: SetJarsFunction;
-  setSelectedJarStrategies?: SetStratsFunction;
-}> = ({ core, mainnet, selectedJars, selectedJarStrats, setSelectedJars, setSelectedJarStrategies }) => {
+  setSelectedJarStrats?: SetStratsFunction;
+}> = ({
+  core,
+  mainnet,
+  selectedJars,
+  selectedJarStrats,
+  setSelectedJars,
+  setSelectedJarStrats,
+}) => {
   const selected = selectedJars
     ? selectedJarStrats
       ? selectedJars.concat(selectedJarStrats)
@@ -41,9 +48,7 @@ export const JarSelect: FC<{
     setSelectedJars(jars.map((jar: SelectData) => jar.value));
   };
   const stratChange = (strats: SelectData[]): void => {
-    setSelectedJarStrategies
-      ? setSelectedJarStrategies(strats.map((strat: SelectData) => strat.value))
-      : 0;
+    setSelectedJarStrats ? setSelectedJarStrats(strats.map((strat: SelectData) => strat.value)) : 0;
   };
   const change = (selections: SelectData[]): void => {
     const strategies = ["strategy.delegate.team", "strategy.tvl", "strategy.profit"];

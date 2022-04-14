@@ -9,7 +9,6 @@ import ChartContainer from "v2/features/stats/jar/ChartContainer";
 import DocContainer from "v2/features/stats/jar/DocContainer";
 import RevTableContainer from "v2/features/stats/jar/RevTableContainer";
 
-
 const Stats: PickleFinancePage = () => {
   const core = useSelector(CoreSelectors.selectCore);
   const [jarData, setJarData] = useState<JarChartData>({} as JarChartData);
@@ -42,10 +41,12 @@ const Stats: PickleFinancePage = () => {
 
 const PageTitle: FC = () => {
   const { t } = useTranslation("common");
+  const router = useRouter();
+  const jar: string = typeof router.query.jar === "string" ? router.query.jar : "";
 
   return (
     <>
-      <h1 className="font-title font-medium text-2xl sm:text-3xl pt-2">{t("v2.nav.stats")}</h1>
+      <h1 className="font-title font-medium text-2xl sm:text-3xl pt-2">{t("v2.nav.stats").concat(` - ${jar.toUpperCase()}`)}</h1>
       <h2 className="font-body font-normal text-foreground-alt-200 text-sm sm:text-base leading-4 sm:leading-6 mt-1">
         {t("v2.stats.subtitle")}
       </h2>

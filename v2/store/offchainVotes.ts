@@ -4,13 +4,13 @@ import { QueryStatus } from "@reduxjs/toolkit/query";
 import { RootState } from ".";
 
 interface VoteState {
-  data: iOffchainVoteData | undefined,
+  data: iOffchainVoteData | undefined;
   loading: keyof typeof QueryStatus;
 }
 
 const initialState: VoteState = {
   data: undefined,
-  loading: "uninitialized"
+  loading: "uninitialized",
 };
 
 export interface iOffchainVoteData {
@@ -44,26 +44,29 @@ export interface UserVote {
 }
 
 interface iDillWeight {
-  type: string; 
+  type: string;
   hex: string;
 }
 
-interface iChainWeight {
+export interface iChainWeight {
   chain: string;
   weight: number;
 }
 
-interface iJarWeight {
+export interface iJarWeight {
   jarKey: string;
   weight: number;
 }
 
 const apiHost = process.env.apiHost;
 
-export const fetchOffchainVoteData = createAsyncThunk<iOffchainVoteData>("offchainVotes/fetch", async () => {
-  const response = await fetch(`${apiHost}/protocol/dill/offchainVotes/current`);
-  return await response.json();
-});
+export const fetchOffchainVoteData = createAsyncThunk<iOffchainVoteData>(
+  "offchainVotes/fetch",
+  async () => {
+    const response = await fetch(`${apiHost}/protocol/dill/offchainVotes/current`);
+    return await response.json();
+  },
+);
 
 const offchainVoteSlice = createSlice({
   name: "offchainVotes",
@@ -86,7 +89,7 @@ const offchainVoteSlice = createSlice({
 const selectVoteData = (state: RootState) => state.offchainVotes.data;
 
 export const VoteSelectors = {
-  selectVoteData
+  selectVoteData,
 };
 
 export default offchainVoteSlice.reducer;

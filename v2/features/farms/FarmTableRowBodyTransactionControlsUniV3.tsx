@@ -13,6 +13,8 @@ import LoadingIndicator from "v2/components/LoadingIndicator";
 import WithdrawFlow from "./flows/withdraw/WithdrawFlow";
 import ApprovalFlowUniV3 from "./flows/approval/ApprovalFlowUniV3";
 import DepositFlowUniV3 from "./flows/deposit/DepositFlowUniV3";
+import StakeFlow from "./flows/stake/StakeFlow";
+import UnstakeFlow from "./flows/unstake/UnstakeFlow";
 
 interface Props {
   jar: JarWithData;
@@ -75,11 +77,19 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
           <span className="font-title text-primary font-medium text-base leading-5">
             {farmTokens}
           </span>
-          <ApprovalFlow type="farm" jar={jar} visible={!userHasFarmAllowance} />
+          <ApprovalFlow
+            apiKey={jar.details.apiKey}
+            tokenAddress={jar.contract}
+            tokenName={jar.farm?.farmDepositTokenName}
+            spenderAddress={jar.farm?.farmAddress}
+            storeAttribute="farmAllowance"
+            chainName={jar.chain}
+            visible={!userHasFarmAllowance}
+          />
           {userHasFarmAllowance && (
             <div className="grid grid-cols-2 gap-3">
-              <DepositFlow jar={jar} balances={userTokenData} />
-              <WithdrawFlow jar={jar} balances={userTokenData} />
+              <StakeFlow jar={jar} balances={userTokenData} />
+              <UnstakeFlow jar={jar} balances={userTokenData} />
             </div>
           )}
         </div>
