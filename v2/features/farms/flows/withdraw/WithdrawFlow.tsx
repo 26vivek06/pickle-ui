@@ -26,9 +26,10 @@ import { truncateToMaxDecimals } from "v2/utils";
 interface Props {
   jar: JarWithData;
   balances: UserTokenData | undefined;
+  isUniV3?: boolean | undefined;
 }
 
-const WithdrawFlow: FC<Props> = ({ jar, balances }) => {
+const WithdrawFlow: FC<Props> = ({ jar, balances, isUniV3 = false }) => {
   const { t } = useTranslation("common");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const core = useSelector(CoreSelectors.selectCore);
@@ -65,22 +66,70 @@ const WithdrawFlow: FC<Props> = ({ jar, balances }) => {
     const events = receipt.events?.filter(({ event }) => event === "Transfer") as TransferEvent[];
 
     const pTokenTransferEvent = events.find((event) => event.args.from === account)!;
-    const depositTokenTransferEvent = events.find((event) => event.args.to === account)!;
-
-    const depositTokenBalance = depositTokenBalanceBN
-      .add(depositTokenTransferEvent.args.value)
-      .toString();
     const pAssetBalance = pTokenBalanceBN.sub(pTokenTransferEvent.args.value).toString();
 
-    dispatch(
-      UserActions.setTokenData({
-        apiKey: jar.details.apiKey,
-        data: {
-          depositTokenBalance,
-          pAssetBalance,
-        },
-      }),
-    );
+    if (isUniV3) {
+      const token0Name = jar.token0!.name;
+      const token1Name = jar.token1!.name;
+      const token0Data = balances?.componentTokenBalances[token0Name];
+      const token1Data = balances?.componentTokenBalances[token1Name];
+
+      const depositToken0BalanceBN = BigNumber.from(token0Data?.balance || "0");
+      const depositToken1BalanceBN = BigNumber.from(token1Data?.balance || "0");
+
+      const token0TransferEvent = events.find(
+        (event) =>
+          event.args.to === account &&
+          event.address.toLowerCase() === jar.token0!.address.toLowerCase(),
+      )!;
+      const token1TransferEvent = events.find(
+        (event) =>
+          event.args.to === account &&
+          event.address.toLowerCase() === jar.token1!.address.toLowerCase(),
+      )!;
+
+      const newToken0Balance = depositToken0BalanceBN
+        .sub(token0TransferEvent.args.value)
+        .toString();
+
+      const newToken1Balance = depositToken1BalanceBN
+        .sub(token1TransferEvent.args.value)
+        .toString();
+      dispatch(
+        UserActions.setTokenData({
+          apiKey: jar.details.apiKey,
+          data: {
+            componentTokenBalances: {
+              [token0Name]: {
+                ...balances!.componentTokenBalances[token0Name],
+                balance: newToken0Balance,
+              },
+              [token1Name]: {
+                ...balances!.componentTokenBalances[token1Name],
+                balance: newToken1Balance,
+              },
+            },
+            pAssetBalance,
+          },
+        }),
+      );
+    } else {
+      const depositTokenTransferEvent = events.find((event) => event.args.to === account)!;
+
+      const depositTokenBalance = depositTokenBalanceBN
+        .add(depositTokenTransferEvent.args.value)
+        .toString();
+
+      dispatch(
+        UserActions.setTokenData({
+          apiKey: jar.details.apiKey,
+          data: {
+            depositTokenBalance,
+            pAssetBalance,
+          },
+        }),
+      );
+    }
   };
 
   const { sendTransaction, error, setError, isWaiting } = useTransaction(

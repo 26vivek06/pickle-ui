@@ -62,7 +62,7 @@ const FarmsTableRowBodyV3TransactionControls: FC<Props> = ({ jar }) => {
           {userHasJarAllowance && (
             <div className="grid grid-cols-2 gap-3">
               <DepositFlowUniV3 jar={jar} balances={userTokenData} />
-              <WithdrawFlow jar={jar} balances={userTokenData} />
+              <WithdrawFlow jar={jar} balances={userTokenData} isUniV3={true} />
             </div>
           )}
         </div>

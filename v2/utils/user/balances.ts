@@ -97,7 +97,6 @@ export const getUserAssetDataWithPrices = (
     token0Balance = userTokenDetails.componentTokenBalances[token0 || ""].balance;
     token1Balance = userTokenDetails.componentTokenBalances[token1 || ""].balance;
 
-    console.log(jar, token0, token1, token0Balance, token1Balance)
     const token0Wallet: UserAssetDataWithPricesComponent = createUserAssetDataComponent(
       BigNumber.from(token0Balance?.toString() || "0"),
       decimals,
