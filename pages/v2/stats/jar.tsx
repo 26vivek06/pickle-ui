@@ -18,6 +18,7 @@ const Stats: PickleFinancePage = () => {
   const router = useRouter();
   const [apiKey, setApiKey] = useState("");
   const [jarData, setJarData] = useState<JarChartData>({} as JarChartData);
+  const [chain, setChain] = useState("");
 
   const asset: JarWithData | undefined = assets.find(
     (a) => a.details.apiKey.toLowerCase() === apiKey.toLowerCase(),
@@ -26,6 +27,10 @@ const Stats: PickleFinancePage = () => {
   useEffect(() => {
     if (typeof router.query.jar === "string") setApiKey(router.query.jar);
   }, [router]);
+
+  useEffect(() => {
+    setChain(asset.chain);
+  }, [asset]);
 
   useEffect(() => {
     const getData = async (): Promise<void> => {
@@ -39,7 +44,7 @@ const Stats: PickleFinancePage = () => {
   return (
     <div className="block lg:flex mb-8 sm:mb-10">
       <div className="w-full mb-4 lg:w-1/2 lg:mr-8 lg:mb-0 xl:w-4/5">
-        <Back router={router} chain={asset ? asset.chain : "eth"} text={t("v2.stats.jar.back")} />
+        <Back router={router} chain={asset.chain} text={t("v2.stats.jar.back")} />
         <div className="mb-5">
           {asset && asset.depositTokensInJar && (
             <FarmsTable asset={asset} singleAsset={true} hideDescription={true} />
