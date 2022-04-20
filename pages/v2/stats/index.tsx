@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { PickleFinancePage, PlatformData } from "v2/types";
-import ChartContainer from "v2/features/stats/platform/ChartContainer";
+import ChartContainer from "v2/features/stats/sharedCharts/ChartContainer";
 import ChainTableContainer from "v2/features/stats/platform/ChainTableContainer";
 
 const Stats: PickleFinancePage = () => {
@@ -17,8 +17,8 @@ const Stats: PickleFinancePage = () => {
   return (
     <div className="block lg:flex mb-8 sm:mb-10">
       <div className="w-full mb-4 lg:w-1/2 lg:mr-8 lg:mb-0 xl:w-4/5">
-        <ChartContainer chart="tvl" dataSeries={dataSeries} />
-        <ChartContainer chart="revs" dataSeries={dataSeries} />
+        <ChartContainer chart="tvl" dataSeries={dataSeries} className="mb-5" />
+        <ChartContainer chart="revs" dataSeries={dataSeries} className="mb-5" />
         <ChainTableContainer chains={dataSeries.chains} />
       </div>
     </div>
