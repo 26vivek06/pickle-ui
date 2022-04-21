@@ -34,7 +34,7 @@ const DillAmount: FC<Props> = ({ dill, pickles }) => {
                 {t("v2.dill.pickleBalance")}
               </h1>
               <p className="text-primary whitespace-pre font-medium text-base">
-                {parseFloat(formatEther(pickles[ChainNetwork.Ethereum]) || "0").toFixed(4)}
+                {parseFloat(formatEther(pickles[ChainNetwork.Ethereum] || "0")).toFixed(4)}
               </p>
             </div>
             <Button type="primary" onClick={() => setIsOpen(true)}>
