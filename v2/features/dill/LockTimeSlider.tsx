@@ -16,9 +16,9 @@ const LockTimeSlider: FC<Props> = ({ setLockTime, dill }) => {
   if (!dill?.lockEnd) return <></>;
 
   const currentLockEnd = parseFloat(dill?.lockEnd)
-  ? dateFromEpoch(parseFloat(dill?.lockEnd))
-  : new Date();
-  const max = getWeekDiff(currentLockEnd, getDayOffset(new Date(), 365 * 4));
+    ? dateFromEpoch(parseFloat(dill?.lockEnd))
+    : new Date();
+  const max = getWeekDiff(currentLockEnd, getDayOffset(new Date(), 365 * 4 - 7));
   const [weeks, setWeeks] = useState<number>(max);
 
   const onSliderChange = (value: number | number[]) => {

@@ -109,7 +109,7 @@ const RevenueStats: FC<Props> = ({ dill }) => {
             {t("v2.dill.upcomingDistributionValue")}
           </p>
         </div>
-        <div>
+        <div className="mb-6 xl:mb-0">
           <h2 className="font-title font-medium text-foreground text-lg leading-5">
             {formatDate(new Date(upcomingDistribution.distributionTime))}
           </h2>
