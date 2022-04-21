@@ -23,6 +23,7 @@ const RevenueStats: FC<Props> = ({ dill }) => {
     core ? core : ({} as PickleModelJson.PickleModelJson),
   );
   const { dillWeeks } = dill;
+  if (!weeklyDistribution || !dillWeeks) return <></>;
   const upcomingDistribution = dillWeeks[dillWeeks.length - 1];
 
   const ratio = dill.totalDill / dill.pickleLocked;
